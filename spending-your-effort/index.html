@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>使用 Claude Code：怎么花你的 effort</title>
+<meta content="effort 到底是什么、在 Claude Code 里什么时候用哪一档——来自我对三个构建的自测，以及在 Opus 5.5 和 Fable 5.1 上对 Terminal-Bench 3.0 的深挖。" name="description"/>
+<meta content="使用 Claude Code：怎么花你的 effort" property="og:title"/>
+<meta content="effort 到底是什么、在 Claude Code 里什么时候用哪一档——来自我对三个构建的自测，以及在 Opus 5.5 和 Fable 5.1 上对 Terminal-Bench 3.0 的深挖。" property="og:description"/>
+<meta content="article" property="og:type"/>
+<link href="https://jahseh618.github.io/claude-zh/spending-your-effort/" rel="canonical"/>
+<style>:root {
+  --bg: #0a0a0a;
+  --fg: #e8e6e3;
+  --fg-dim: #a3a09a;
+  --fg-faint: #6b6862;
+  --accent: #54675e;
+  --accent-light: #7a8f85;
+  --border: #1e1e1c;
+  --card-bg: #111110;
+  --code-bg: #161614;
+  --quote-border: #54675e;
+  --max-w: 72ch;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 18px; line-height: 1.75; color: var(--fg); background: var(--bg); }
+body { font-family: 'Spectral', Charter, Georgia, serif; max-width: var(--max-w); margin: 0 auto; padding: 2rem 1.5rem 6rem; }
+a { color: var(--accent-light); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.skip { position: absolute; left: -9999px; }
+.skip:focus { left: 0.5rem; top: 0.5rem; z-index: 100; background: var(--accent); color: #fff; padding: 0.5rem 1rem; }
+
+.site-header { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 3rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.wordmark { font-size: 1.2rem; font-weight: 700; color: var(--fg); letter-spacing: 0.02em; }
+.wordmark-sub { font-size: 0.75rem; font-weight: 400; color: var(--fg-faint); margin-left: 0.3rem; }
+.site-nav { display: flex; gap: 1rem; font-size: 0.85rem; }
+.site-nav a { color: var(--fg-dim); }
+
+.article-header { margin-bottom: 2.5rem; }
+.article-header h1 { font-size: 2rem; line-height: 1.3; font-weight: 700; margin-bottom: 1rem; color: var(--fg); }
+.meta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; color: var(--fg-faint); font-family: 'AnthropicMono', ui-monospace, monospace; }
+.standfirst { font-size: 1.15rem; color: var(--fg-dim); margin-top: 1rem; line-height: 1.6; }
+.eyebrow { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); font-family: 'AnthropicMono', ui-monospace, monospace; margin-bottom: 0.5rem; }
+
+.reading p { margin-bottom: 1.25rem; }
+.reading h2 { font-size: 1.4rem; margin-top: 2.5rem; margin-bottom: 1rem; font-weight: 700; }
+.reading h3 { font-size: 1.15rem; margin-top: 2rem; margin-bottom: 0.75rem; font-weight: 600; }
+.reading h4 { font-size: 1rem; margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; }
+.reading blockquote { border-left: 3px solid var(--quote-border); padding-left: 1rem; margin: 1.5rem 0; color: var(--fg-dim); font-style: italic; }
+.reading pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.25rem; overflow-x: auto; font-size: 0.85rem; line-height: 1.5; font-family: 'AnthropicMono', ui-monospace, monospace; margin: 1.5rem 0; }
+.reading code { font-family: 'AnthropicMono', ui-monospace, monospace; font-size: 0.9em; background: var(--code-bg); padding: 0.15em 0.4em; border-radius: 3px; }
+.reading pre code { background: none; padding: 0; }
+.reading ul, .reading ol { padding-left: 1.5rem; margin-bottom: 1.25rem; }
+.reading li { margin-bottom: 0.4rem; }
+.reading table { border-collapse: collapse; width: 100%; margin: 1.5rem 0; font-size: 0.9rem; }
+.reading th, .reading td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
+.reading th { background: var(--card-bg); font-weight: 600; }
+.reading figcaption { font-size: 0.8rem; color: var(--fg-faint); margin-top: 0.5rem; text-align: center; }
+.reading figure { margin: 2rem 0; text-align: center; }
+.reading img { max-width: 100%; height: auto; border-radius: 4px; }
+.reading em { font-style: italic; }
+.reading strong { font-weight: 700; }
+
+.toc { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem 1.5rem; margin-bottom: 2.5rem; }
+.toc h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-faint); margin-bottom: 0.75rem; font-family: 'AnthropicMono', ui-monospace, monospace; }
+.toc ol { padding-left: 1.25rem; font-size: 0.95rem; }
+.toc li { margin-bottom: 0.3rem; }
+
+.footer { margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--fg-faint); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+.footer a { color: var(--fg-faint); }
+
+/* Listing page */
+.post-list { list-style: none; padding: 0; }
+.post-list li { padding: 1rem 0; border-bottom: 1px solid var(--border); }
+.post-list li:last-child { border-bottom: none; }
+.post-list a { color: var(--fg); font-size: 1.1rem; font-weight: 600; }
+.post-list a:hover { color: var(--accent-light); }
+.post-list .post-meta { font-size: 0.8rem; color: var(--fg-faint); margin-top: 0.25rem; font-family: 'AnthropicMono', ui-monospace, monospace; }
+
+@media (max-width: 600px) {
+  html { font-size: 16px; }
+  body { padding: 1rem 1rem 4rem; }
+  .article-header h1 { font-size: 1.6rem; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="site-header">
+<a class="wordmark" href="../index.html">Claude<span class="wordmark-sub">翻译</span></a>
+<nav class="site-nav" aria-label="主导航">
+<a href="../index.html">全部翻译</a>
+<a href="https://jahseh618.github.io/doudou-skills-hub/">论文雷达</a>
+<a href="https://claude.dev/blog/spending-your-effort/" target="_blank" rel="noopener">原站 ↗</a>
+<a href="https://github.com/JAHSEH618/claude-zh" target="_blank" rel="noopener">GitHub ↗</a>
+</nav>
+</header>
+<main id="main">
+<article>
+<div class="article-header">
+<p class="eyebrow">Engineering</p>
+<h1>使用 Claude Code：怎么花你的 effort</h1>
+<p class="meta"><span>Sep 25, 2026</span><span>Claude Code Blog</span><span>约 8 min</span><span>Thariq Shihipar</span></p>
+<p class="standfirst">effort 到底是什么、在 Claude Code 里什么时候用哪一档——来自我对三个构建的自测，以及在 Opus 5.5 和 Fable 5.1 上对 Terminal-Bench 3.0 的深挖。</p>
+</div>
+<nav class="toc" aria-label="目录"><h2>目录</h2><ol><li><a href="#s01">What is effort?</a></li><li><a href="#s02">Effort curves</a></li><li><a href="#s03">Building with effort</a></li><li><a href="#s04">How effort levels impact output on difficult tasks</a></li></ol></nav>
+<div class="reading">
+<p>我们最新的 Claude 模型最棒的地方之一，是它们对 effort 的响应不会打破 Claude Code 里的 prompt cache，但我也收到用户很多关于这个的问题。effort <a href="https://claude.com/blog/claude-model-and-effort-level-in-claude-code">到底是什么</a>，什么时候用哪一档？我们为什么需要 effort？</p>
+<p>要回答这个，我决定深挖 evals，并自己对 effort 在日常工作里做测试。</p>
+<p>总的来说，我发现 effort 是个调节 Claude 做多少验证和 edge case 测试、用多少自己判断的好办法。多花的 effort 在验证和 edge case 测试更有用的领域效果更好，比如硬件、code review、安全。</p>
+<p>日常软件工程里，我在跑这样一个循环：让模型先采访我，low effort 实现，审一遍它构建的东西，再用 high effort 跑验证。</p>
+<h2 id="s01">effort 是什么？</h2>
+<p>总的来说，effort 给模型一个近似值：你想让它在这个任务上花多少算力。它和你怎么估计任务难度有点关系。</p>
+<p>可以这样想：有人让你连续做 12 小时一件事，你可能默认他们就是想要结果，会非常尽力。有人让你 1 小时做同一个任务，你会尽力给出一个满足要求的版本，然后预期在此基础上迭代。</p>
+<p>或者你可能会顶回去，说这个任务至少要 3 小时，然后做 3 小时交付。</p>
+<p>effort 应该这样理解。Claude 总会尽力把任务做到合理，但更高的 effort 意味着 Claude 做更多独立的判断和验证动作。</p>
+<h2 id="s02">effort 曲线</h2>
+<p>Fable 5.1 和 Opus 5.5 的 effort 曲线是迄今最好的：每一档，benchmark 分数和消耗的 token 都往上跳一步。</p>
+<div>Terminal-Bench 3.0</div>
+<figcaption><b>图 A</b><span>Terminal-Bench 3.0，每个模型都是同样的 70 个任务（4 个 GPU 任务剔除）。Opus 5.5 晚跑了约三周，响应上限 128k token，无 GitHub 或 PyPI 访问；Opus 5 的 max 是它的 effort-120 运行。</span></figcaption>
+<p>但实践中这意味着什么？为了评估，我在不同 effort 档试了几个任务，并仔细看了 benchmark。</p>
+<h2 id="s03">用 effort 构建</h2>
+<p>理解模型怎么工作的最好办法是跑实验。我在 Opus 5.5 上用不同 effort 档做同样的任务，理解它会做什么活。我试了各种各样的活，这里用几个玩具例子说明。</p>
+<h3 id="s04">欠规约的构建任务</h3>
+<p>如果我让 Claude "构建一个个人健身和工作量追踪 app"，effort 会极大地改变 app 的完整度，也会让 Claude 一路做更多选择。low effort 下，健身 app 就是一个日志加一个简单图表。更高的 effort 档，app 更复杂、细节更多。max effort 下有一张热力图。</p>
+<p>如果我想一个简单的可以迭代的底子，low effort 就够了。max effort 是当我想要 Claude 一次做到最好。</p>
+<h3 id="s05">轻规约的设计任务</h3>
+<p>如果任务已经比较规约清楚，但我想和 Claude 做一些探索呢？举例，我让它重新设计 Claude Code 的 <code>/config</code> 菜单。每一档做出来的想法大体一样：用子菜单和更好的搜索。</p>
+<p>low effort（花 1 分钟），我拿到一个交互草图，传达了想法，但看起来不太像 Claude Code。</p>
+<p>max effort（花 28 分钟），我拿到一个非常像 Claude Code 的 mockup，外加一批不同流程的 walkthrough。</p>
+<p>如果我的目标是迭代和给反馈，low effort 会快得多到达那里。但 max effort 一开始就给我一个精细得多的东西。就这个任务而言，我更喜欢用 low effort 理解 Claude 的构想。</p>
+<h3 id="s06">高规约的构建任务</h3>
+<p>如果我给 Claude 很多细节呢？我让它就健身 app 深度采访我，然后把那份 spec 交给不同模型在不同 effort 档实现。</p>
+<p>我发现给了这份 spec，模型行为相似得多。我拿到外观比较像、实现相近但细节不同的设计，max effort 时 Claude 花时间简化了几个细节。</p>
+<h3 id="s07">要点</h3>
+<p>常规软件工程，尤其新功能开发，effort 档很取决于我想多在环内。low effort 让 Claude 快速给出一个起点，更高的档会做更多活，但 Claude 也会替我做更多假设。</p>
+<p>我在功能开发中一直在用的一个特别高产的循环：</p>
+<li>给 Claude 一份 spec，让它采访我补上我漏掉的细节</li>
+<li>low effort 实现</li>
+<li>审一遍确认它抓住了大意，必要时 low effort 迭代</li>
+<li>high effort 验证和测试</li>
+<h2 id="s08">difficult 任务上 effort 档如何影响输出</h2>
+<p>但这些显然是玩具例子，Claude 都能轻松完成。当差别在于 Claude 完成任务还是没完成任务时呢？</p>
+<p>要找这些难问题，得去 benchmark，所以我深挖了一个我喜欢的：Terminal-Bench 3.0，一个社区来源的 benchmark。</p>
+<p>Terminal-Bench 3.0 的问题大体可以分成安全、硬件、ML、科学、软件、运维、媒体等类别。所有问题在这里：<a href="https://github.com/harbor-framework/terminal-bench/releases/tag/v3.0.0">https://github.com/harbor-framework/terminal-bench/releases/tag/v3.0.0</a>。问题来自社区，任何人都可以贡献。</p>
+<p>值得读一遍，感受一下这些模型面对的问题类型。我发现很多任务的范围和野心让我惊讶。它们比我平常遇到的任务复杂得多。</p>
+<p>比如，其中一些任务包括：</p>
+<li><strong>硬件</strong>（<code>retro-console-soc</code>）：用 Verilog 造一个能装进小型 FPGA 的 8 位游戏机，渲染一个测试 ROM。</li>
+<li><strong>科学</strong>（<code>takens-embedding-lean</code>）：在 Lean 4 里形式化证明 Takens 嵌入定理。</li>
+<li><strong>ML</strong>（<code>mp-checkpoint-consolidation</code>）：把一个 mixture-of-experts checkpoint 的 16 个分片合并成一个能复现参考 logits 的文件。</li>
+<li><strong>运维</strong>（<code>intrastat-meldung</code>）：端到端跑完一个公司月末的欧盟贸易统计申报。</li>
+<li><strong>媒体</strong>（<code>layout-config-recreation</code>）：把一张海报图重建为可编辑的排版文件。</li>
+<h3 id="s09">edge case 多的时候，更高的 effort 档有帮助</h3>
+<p>读 Terminal-Bench 3.0 结果，我的主要收获是：<strong>hidden edge case 多的任务，更高的 effort 最好。</strong></p>
+<p>一个干净的例子是 <code>html-js-filter</code>，一个要求写 HTML sanitizer、剥掉一切把 JavaScript 夹带进页面的方式的 Terminal-Bench 3.0 任务。Fable 5.1 从 low 的 1/5 到 xhigh 的 5/5。¹</p>
+<p>low effort 的典型尝试花约 2 分钟。每次尝试大体一遍写完 filter，然后对着一张手写页面测。</p>
+<p>high-effort 的运行约 33 分钟结束。在我追踪的那次运行里，它对抗性地审了自己的初稿，然后读安装的解析器源码查 bug，跑大量干净测试用例直到输出和输入一致，跑了一个标准 XSS 测试套件，最后写了一个随机文档 fuzzer。</p>
+<p>对 HTML sanitizer 这种 edge case 极多的东西，这些多花的 effort 很值。为彻底多花 token 对生产要求高的复杂任务（如性能优化、安全审查）也说得通。</p>
+<p>但每个任务都不需要这个级别的 effort。</p>
+<p>下面的图展示了所有 Terminal-Bench 3.0 结果和失败方式，跨不同模型和 effort 档。总体看，提高 effort 倾向减少因漏 edge case 的失败（紫色块），但模型思路错误时（蓝色块）它修不了。</p>
+<figcaption><b>图 B</b><span>每个方块是一次尝试。失败类型来自模型评委，是近似值。</span></figcaption>
+<h3 id="s10">effort 有帮助的问题领域</h3>
+<p>我在 Terminal-Bench 3.0 上评估这些模型，最有意思的收获之一：有些问题领域比别的从 effort 里受益更多。下图是细分：</p>
+<figcaption><b>图 C</b><span>通过率。low effort 汇总每个模型最低的两个设置，top effort 最高的三个，因为类别很小。</span></figcaption>
+<p>为说明这点，我从 Terminal-Bench 3.0 不同领域挑了几个 Opus 5.5 在 low effort 失败、high effort 成功的问题——大多因为它测试并处理了 edge case：</p>
+<p><strong><code>mvcc-lsm-compaction</code></strong>：一个从崩溃报告修存储引擎 bug、且不能破坏 compaction 的 Terminal-Bench 3.0 任务。Opus 5.5 从 low 的 0/5 到 xhigh 的 4/5。</p>
+<p>low（每次尝试约一分钟），Claude 会先改代码再构建或跑复现程序，也没检查它的新测试能否抓住原始 bug。</p>
+<p>xhigh（约 11 分钟），Claude 先复现崩溃，对着一个从不 compact 的参考写随机化测试，并检查它的测试在半成品的修复上会失败。</p>
+<p><strong><code>cli-2ph-simplex</code></strong>：一个要求用 Python 写 CLI 线性规划求解器的 Terminal-Bench 3.0 任务。Opus 5.5 从 low 的 0/5 到 high 的 5/5。</p>
+<p>low 的尝试一遍写完求解器，用几个小问题检查后就停在约 10k token 左右。最后一条消息里，Claude 警告它在大问题上可能慢，但没去验证。</p>
+<p>high 的尝试中，Claude 用随机问题把它的求解器和一个独立的暴力求解器对测，然后计时更大的问题，撞出运行过久或崩溃的情况，重做了它的搜索。</p>
+<p><strong><code>gsea-proteomics</code></strong>：一个要求对蛋白质组学数据做基因集富集分析（GSEA）、找出八种处理里哪个最像目标组织的 Terminal-Bench 3.0 任务。Opus 5.5 从 low 的 0/5 到 high 的 4/5。</p>
+<p>low effort 下，Claude 挑了一个听起来合理的预处理方式，按那一种跑了分析，报告了结果。</p>
+<p>high 下，Claude 试了两种数据预处理方式，注意到显著处理的列表变了，深入查明原因后才选了正确的那个。</p>
+<p>如果用户在环内，Claude 也许会问用户问题该怎么设定，但没有用户在环内时，high effort 做得更好。</p>
+<h3 id="s11">在 Claude Code 里什么时候用哪个 effort 档</h3>
+<p>我判断何时用哪一档的准绳：</p>
+<li><strong>Low</strong>：我想要在环内的快速响应时，比如头脑风暴、草图、简单改动</li>
+<li><strong>Medium</strong>：大多数常规软件工程，比如新功能实现。</li>
+<li><strong>High</strong>：验证重要或有 edge case 的活，比如修 brownfield 代码库里的 bug。</li>
+<li><strong>Max</strong>：想让 Claude 全自主运行去解决难题时，比如端到端构建并验证一个 app、在关键软件里找安全漏洞。</li>
+<p>试试在 Opus 5.5 和 Fable 5.1 上按任务变 effort，甚至在对话中途用 Claude Code 的 <code>/effort</code> 变，告诉我这是否符合你的直觉。</p>
+<p><em>¹ 关于数字的说明：这些来自我们自己的内部运行，每任务 5 次尝试，Fable 5.1 关掉了我们的生产安全干预；在 Claude 产品里，Fable 5.1 的 safeguards 会把一些安全请求交给 Opus。安全任务也是无网络访问运行的，所以这里的每任务次数和公开 leaderboard 或发布文章对不上。具体例子来自单次运行，部分在中间 effort 设置上。</em></p>
+<div>通过率对消耗的 token，按 effort 设置</div>
+<button type='button'>Fable 5.1</button>
+<button type='button'>Opus 5</button>
+<button type='button'>Fable 5</button>
+<button type='button'>Fable 5.1</button>
+<button type='button'>Opus 5</button>
+<button type='button'>Fable 5</button>
+</div>
+</article>
+</main>
+<footer class="footer">
+<span>原文: <a href="https://claude.dev/blog/spending-your-effort/" target="_blank" rel="noopener">https://claude.dev/blog/spending-your-effort/</a></span>
+<span>翻译仅供参考，如有错误以原文为准</span>
+</footer>
+</body>
+</html>
